@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "fdk-asgi"
+version = "0.0.1a1"
+description = ""
+authors = ["Björn Reetz <git@bjoern-reetz.de>"]
+readme = "README.md"
+packages = [{include = "fdk_asgi", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+asgiref = "^3.7.2"
+uvicorn = "^0.23.2"
+httptools = "^0.6.0"
+starlette = "^0.31.1"
+
+
+[tool.poetry.group.tests.dependencies]
+pytest = "^7.4.2"
+httpx = "^0.25.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
