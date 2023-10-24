@@ -7,15 +7,13 @@ readme = "README.md"
 packages = [{include = "fdk_asgi", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 asgiref = "^3.7.2"
-uvicorn = "^0.23.2"
 httptools = "^0.6.0"
 starlette = "^0.31.1"
-orjson = "^3.9.9"
 
 
-[tool.poetry.group.tests.dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"
 httpx = "^0.25.0"
 black = "^23.10.1"
