@@ -1,5 +1,6 @@
 import logging
 import os
+from importlib.metadata import version
 
 from asgiref.typing import (
     ASGIApplication,
@@ -14,15 +15,19 @@ from httptools import parse_url
 from starlette import status
 from starlette.responses import Response
 
-__version__ = "0.0.1"
-
+FN_FDK_VERSION_HEADER = (b"Fn-Fdk-Version", f"fdk-asgi/{version(__name__)}".encode())
 FN_HTTP_H_ = b"fn-http-h-"
 FN_HTTP_REQUEST_URL = b"fn-http-request-url"
 FN_HTTP_REQUEST_METHOD = b"fn-http-request-method"
-FN_ALLOWED_RESPONSE_CODES = [status.HTTP_200_OK, status.HTTP_502_BAD_GATEWAY, status.HTTP_504_GATEWAY_TIMEOUT]
+FN_ALLOWED_RESPONSE_CODES = [
+    status.HTTP_200_OK,
+    status.HTTP_502_BAD_GATEWAY,
+    status.HTTP_504_GATEWAY_TIMEOUT,
+]
 
 
 logger = logging.getLogger(__name__)
+
 
 def map_scope(scope: Scope):
     """Transforms headers etc. sent by Fn/API Gateway so that ASGI apps can understand them."""
@@ -83,7 +88,7 @@ def wrap_send(send: ASGISendCallable) -> ASGISendCallable:
                 for key, value in message["headers"]
             ]
             new_headers.append((b"Fn-Http-Status", str(message["status"]).encode()))
-            new_headers.append((b"Fn-Fdk-Version", f"fdk-asgi/{__version__}".encode()))
+            new_headers.append(FN_FDK_VERSION_HEADER)
 
             message["headers"] = new_headers
 
@@ -104,9 +109,13 @@ class FnProtocolMiddleware:
     ):
         if scope["type"] == "http":
             if scope["path"] != "/call":
-                await Response(status_code=status.HTTP_404_NOT_FOUND)(scope, receive, send)
+                await Response(status_code=status.HTTP_404_NOT_FOUND)(
+                    scope, receive, send
+                )
                 return
             if scope["method"] != "POST":
-                await Response(status_code=status.HTTP_405_METHOD_NOT_ALLOWED)(scope, receive, send)
+                await Response(status_code=status.HTTP_405_METHOD_NOT_ALLOWED)(
+                    scope, receive, send
+                )
                 return
         await self.app(map_scope(scope), receive, wrap_send(send))
