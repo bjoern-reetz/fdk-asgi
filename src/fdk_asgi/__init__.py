@@ -1,3 +1,4 @@
+import logging
 import os
 
 from asgiref.typing import (
@@ -10,39 +11,45 @@ from asgiref.typing import (
     HTTPResponseStartEvent,
 )
 from httptools import parse_url
+from starlette import status
+from starlette.responses import Response
 
 __version__ = "0.0.1"
 
-FN_HTTP_H_ = b"Fn-Http-H-"
-FN_HTTP_Request_Url = b"Fn-Http-Request-Url"
-FN_HTTP_Request_Method = b"Fn-Http-Request-Method"
-FN_ALLOWED_RESPONSE_CODES = [200, 502, 504]
+FN_HTTP_H_ = b"fn-http-h-"
+FN_HTTP_REQUEST_URL = b"fn-http-request-url"
+FN_HTTP_REQUEST_METHOD = b"fn-http-request-method"
+FN_ALLOWED_RESPONSE_CODES = [status.HTTP_200_OK, status.HTTP_502_BAD_GATEWAY, status.HTTP_504_GATEWAY_TIMEOUT]
 
+
+logger = logging.getLogger(__name__)
 
 def map_scope(scope: Scope):
     """Transforms headers etc. sent by Fn/API Gateway so that ASGI apps can understand them."""
+
+    # do not process anything but HTTPScope's
     if scope["type"] != "http":
-        # do not process anything but HTTPScope's
         return scope
 
     # see https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
     scope: HTTPScope
 
+    # todo: replace these assertions with proper routes with error responses etc.
     assert scope["method"] == "POST"
     assert scope["path"] == "/call"
 
-    new_headers = []
+    http_headers = []
     request_url: bytes = b""
     request_method: bytes = b""
     for key, value in scope["headers"]:
         if key.startswith(FN_HTTP_H_):
-            new_headers.append((key.removeprefix(FN_HTTP_H_), value))
-        elif key == FN_HTTP_Request_Url:
+            http_headers.append((key.removeprefix(FN_HTTP_H_), value))
+        elif key == FN_HTTP_REQUEST_URL:
             request_url = value
-        elif key == FN_HTTP_Request_Method:
+        elif key == FN_HTTP_REQUEST_METHOD:
             request_method = value
         else:
-            new_headers.append((key, value))
+            http_headers.append((key, value))
 
     assert request_url
     assert request_method
@@ -55,7 +62,7 @@ def map_scope(scope: Scope):
     scope["raw_path"] = parsed_url.path  # byte-string
     scope["query_string"] = parsed_url.query  # byte-string
     scope["root_path"] = os.getenv("FDK_ASGI_ROOT_PATH", "")
-    scope["headers"] = new_headers
+    scope["headers"] = http_headers
     # todo: check if scope["client"] is correct
     # todo: check if scope["server"] is correct
 
@@ -64,18 +71,21 @@ def map_scope(scope: Scope):
 
 def wrap_send(send: ASGISendCallable) -> ASGISendCallable:
     async def wrapped_send(message: ASGISendEvent):
-        if message["type"] != "http.response.start":
-            # only process messages of type=http.response.start
+        # only process messages of type=http.response.start,
+        # leave message of other types untouched
+        if message["type"] == "http.response.start":
             message: HTTPResponseStartEvent
 
             new_headers = [
                 (key, value)
                 if key.lower == b"content-type"
-                else (b"Fn-Http-H-" + key, value)
+                else (FN_HTTP_H_ + key, value)
                 for key, value in message["headers"]
             ]
             new_headers.append((b"Fn-Http-Status", str(message["status"]).encode()))
             new_headers.append((b"Fn-Fdk-Version", f"fdk-asgi/{__version__}".encode()))
+
+            message["headers"] = new_headers
 
             if message["status"] not in FN_ALLOWED_RESPONSE_CODES:
                 message["status"] = 200
@@ -92,4 +102,11 @@ class FnProtocolMiddleware:
     async def __call__(
         self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ):
+        if scope["type"] == "http":
+            if scope["path"] != "/call":
+                await Response(status_code=status.HTTP_404_NOT_FOUND)(scope, receive, send)
+                return
+            if scope["method"] != "POST":
+                await Response(status_code=status.HTTP_405_METHOD_NOT_ALLOWED)(scope, receive, send)
+                return
         await self.app(map_scope(scope), receive, wrap_send(send))

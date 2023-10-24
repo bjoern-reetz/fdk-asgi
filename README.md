@@ -2,8 +2,34 @@
 An alternative FDK to easily run any ASGI application on OCI Functions behind an API Gateway.
 
 ## Documentation on the Open Fn Project and OCI Functions
+
+Example request:
+
+```
+POST /call HTTP/1.1
+Fn-Call-Id : 12345678910
+Fn-Deadline: <date/time>
+Fn-Http-Request-Url: https://my.fn.com/t/hello/world
+Fn-Http-Request-Method: PUT
+Fn-Http-H-Custom-Header: foo
+Content-type: text/plain
+
+<Body here>
+```
+
+Example Response:
+
+```
+HTTP/1.1 200 OK
+Fn-Http-Status: 204
+Fn-Http-H-My-Header: foo
+Fn-Fdk-Version: fdk-go/0.0.42
+Content-type: text/plain
+
+<Body here>
+```
                                     
-See [Fn container contract](https://github.com/fnproject/docs/blob/master/fn/develop/fn-format.md).
+For more info see [Fn container contract](https://github.com/fnproject/docs/blob/master/fn/develop/fn-format.md).
 
 ### Default Environment Variables
          
