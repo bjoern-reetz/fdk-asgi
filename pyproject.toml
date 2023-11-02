@@ -6,17 +6,25 @@ authors = ["Björn Reetz <git@bjoern-reetz.de>"]
 readme = "README.md"
 packages = [{include = "fdk_asgi", from = "src"}]
 
+[tool.poetry.scripts]
+fdk-asgi-serve = 'fdk_asgi.cli:app'
+
 [tool.poetry.dependencies]
 python = "^3.8"
 asgiref = "^3.7.2"
 httptools = "^0.6.0"
 starlette = "^0.31.1"
-
+uvicorn = "^0.23.2"
+gunicorn = "^21.2.0"
+typer = "^0.9.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"
 httpx = "^0.25.0"
 black = "^23.10.1"
+
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib"]
 
 [build-system]
 requires = ["poetry-core"]

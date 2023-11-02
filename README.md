@@ -28,11 +28,15 @@ Content-type: text/plain
 
 <Body here>
 ```
-                                    
+
 For more info see [Fn container contract](https://github.com/fnproject/docs/blob/master/fn/develop/fn-format.md).
 
+Notes:
+
+- 0666 contract can be fulfilled by `gunicorn --umask 0666`.
+
 ### Default Environment Variables
-         
+
 Here is the list of automatically generated environment variables that are available to your functions.
 
 | Fn Generated Var | Sample Value                 | Description                                                                                                                                                                                                                                                                   |
