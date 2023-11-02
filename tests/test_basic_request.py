@@ -1,7 +1,7 @@
 from starlette import status
 from starlette.testclient import TestClient
 
-from fdk_asgi import FN_HTTP_REQUEST_METHOD, FN_HTTP_REQUEST_URL
+from fdk_asgi.app import FN_HTTP_REQUEST_METHOD, FN_HTTP_REQUEST_URL
 
 
 def test_foo(fn_app):

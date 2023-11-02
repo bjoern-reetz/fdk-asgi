@@ -1,14 +1,14 @@
 import pytest
+from starlette import status
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import PlainTextResponse, JSONResponse
-from starlette.routing import Route, Mount
-from starlette import status
+from starlette.responses import JSONResponse, PlainTextResponse
+from starlette.routing import Mount, Route
 
-from fdk_asgi import FnApplication
+from fdk_asgi.app import FnApplication
 
 
-def homepage(_):
+def homepage(_: Request):
     return PlainTextResponse("Hello, world!")
 
 
@@ -41,6 +41,10 @@ routes = [
     Route("/users/{username}", users_get),
     Route("/users/{username}", users_create, methods=["POST"]),
 ]
+
+
+shared_app = Starlette(debug=True, routes=routes)
+shared_app.state.users = []
 
 
 @pytest.fixture
