@@ -29,6 +29,7 @@ def test_foo(fn_app):
     )
     assert response.status_code == status.HTTP_200_OK
     assert response.headers["Fn-Http-Status"] == str(status.HTTP_201_CREATED)
+    assert response.headers["content-type"] == "application/json"
     assert response.json() == user_obj
 
 

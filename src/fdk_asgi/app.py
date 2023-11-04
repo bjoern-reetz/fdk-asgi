@@ -132,7 +132,7 @@ class FnMiddleware:
 
                 new_headers = [
                     (key, value)
-                    if key.lower == b"content-type"
+                    if key.lower() == b"content-type"
                     else (FN_HTTP_H_ + key, value)
                     for key, value in message["headers"]
                 ]
