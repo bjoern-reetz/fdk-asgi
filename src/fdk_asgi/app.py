@@ -18,7 +18,7 @@ from starlette import status
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.routing import Route
-from starlette.types import ASGIApp, ExceptionHandler, Lifespan
+from starlette.types import ASGIApp, Lifespan
 
 FN_FDK_VERSION_HEADER = (
     b"Fn-Fdk-Version",
@@ -44,7 +44,7 @@ class FnApplication(Starlette):
         app: ASGIApplication | ASGIApp,
         debug: bool = False,
         middleware: typing.Sequence[Middleware] | None = None,
-        exception_handlers: typing.Mapping[typing.Any, ExceptionHandler] | None = None,
+        exception_handlers: any = None,  # todo: add type annotation
         on_startup: typing.Sequence[typing.Callable[[], typing.Any]] | None = None,
         on_shutdown: typing.Sequence[typing.Callable[[], typing.Any]] | None = None,
         lifespan: Lifespan[ASGIApplication] | None = None,
@@ -78,7 +78,10 @@ class FnMiddleware:
     async def __call__(
         self, scope: HTTPScope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ):
-        await self.app(self.map_scope(scope), receive, self.wrap_send(send))
+        logger.debug(f"{scope=}")
+        mapped_scope = self.map_scope(scope)
+        logger.debug(f"{mapped_scope=}")
+        await self.app(mapped_scope, receive, self.wrap_send(send))
 
     @staticmethod
     def map_scope(scope: HTTPScope) -> HTTPScope:
@@ -120,6 +123,8 @@ class FnMiddleware:
     @staticmethod
     def wrap_send(send: ASGISendCallable) -> ASGISendCallable:
         async def wrapped_send(message: ASGISendEvent):
+            logger.debug(f"{message=}")
+
             # only process messages of type=http.response.start,
             # leave message of other types untouched
             if message["type"] == "http.response.start":
@@ -139,6 +144,7 @@ class FnMiddleware:
                 if message["status"] not in FN_ALLOWED_RESPONSE_CODES:
                     message["status"] = status.HTTP_200_OK
 
+            logger.debug(f"transformed_message={message}")
             await send(message)
 
         return wrapped_send

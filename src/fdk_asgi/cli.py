@@ -1,3 +1,6 @@
+import logging
+import threading
+import time
 from pathlib import Path
 from typing import Annotated, Optional
 
@@ -9,6 +12,52 @@ from fdk_asgi.app import FnApplication
 from fdk_asgi.types import HTTPProtocolType, InterfaceType, LifespanType, LoopSetupType
 
 app = typer.Typer()
+logger = logging.getLogger(__name__)
+
+LOGGING_CONFIG: dict[str, any] = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "()": "uvicorn.logging.DefaultFormatter",
+            "fmt": "%(levelprefix)s %(message)s",
+            "use_colors": None,
+        },
+        "access": {
+            "()": "uvicorn.logging.AccessFormatter",
+            "fmt": '%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s',  # noqa: B950
+        },
+    },
+    "handlers": {
+        "default": {
+            "formatter": "default",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+        },
+        "access": {
+            "formatter": "access",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+        },
+    },
+    "loggers": {
+        __package__: {"handlers": ["default"], "level": "DEBUG"},
+        "uvicorn": {"handlers": ["default"], "level": "INFO", "propagate": False},
+        "uvicorn.error": {"level": "INFO"},
+        "uvicorn.access": {"handlers": ["access"], "level": "INFO", "propagate": False},
+    },
+}
+
+
+def symlink_socket_to_phony(socket: Path, phony: Path):
+    print(f"Watching for phony to be created at {phony}..", flush=True)
+    while not phony.exists():
+        time.sleep(0.1)
+    print(f"Found app at {phony}, creating symlink at {socket}..", flush=True)
+    time.sleep(0.1)
+    phony.chmod(0o666)
+    socket.symlink_to(phony)
+    print(f"App ready to receive calls at {socket}!", flush=True)
 
 
 @app.command()
@@ -90,11 +139,19 @@ def serve(
         asgi_app = asgi_app()
     fn_asgi_app = FnApplication(asgi_app)
     if log_config is None:
-        log_config = uvicorn.config.LOGGING_CONFIG
+        log_config = LOGGING_CONFIG
+
+    socket = Path(uds.removeprefix("unix:"))
+    phony = socket.parent / ("phony" + socket.name)
+
+    # start server at phony, then symlink socket to phony
+    socket.unlink(missing_ok=True)
+    phony.unlink(missing_ok=True)
+    threading.Thread(target=symlink_socket_to_phony, args=(socket, phony)).start()
 
     config = uvicorn.Config(
         app=fn_asgi_app,
-        uds=uds.removeprefix("unix:"),
+        uds=str(phony),
         loop=loop.value,
         http=http.value,
         ws="none",
