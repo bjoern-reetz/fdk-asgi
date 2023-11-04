@@ -91,9 +91,10 @@ class FnMiddleware:
         # see https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
 
         http_headers = []
-        request_url: bytes = b""
-        request_method: bytes = b""
+        request_url: bytes = b"/"  # todo: replace fallbacks with error responses
+        request_method: bytes = b"GET"  # todo: replace fallbacks with error responses
         for key, value in scope["headers"]:
+            key = key.lower()  # todo: preserve header casing
             if key.startswith(FN_HTTP_H_):
                 http_headers.append((key.removeprefix(FN_HTTP_H_), value))
             elif key == FN_HTTP_REQUEST_URL:
@@ -102,9 +103,6 @@ class FnMiddleware:
                 request_method = value
             else:
                 http_headers.append((key, value))
-
-        assert request_url
-        assert request_method
 
         parsed_url = parse_url(request_url)
 
