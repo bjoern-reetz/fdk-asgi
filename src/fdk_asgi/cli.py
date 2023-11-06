@@ -163,9 +163,9 @@ def serve(
         # use_colors: Optional[bool] = None,
         interface=interface.value,
         workers=1,
-        proxy_headers=proxy_headers,
-        server_header=server_header,
-        date_header=date_header,
+        proxy_headers=False,  # todo: add prefixed versions of this header
+        server_header=False,  # todo: add prefixed versions of this header
+        date_header=False,  # todo: add prefixed versions of this header
         # forwarded_allow_ips: Optional[Union[List[str], str]] = None,
         root_path=root_path,
         # limit_concurrency: Optional[int] = None,
