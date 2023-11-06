@@ -91,30 +91,45 @@ class FnMiddleware:
         # see https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
 
         http_headers = []
-        request_url: bytes = b"/"  # todo: replace fallbacks with error responses
-        request_method: bytes = b"GET"  # todo: replace fallbacks with error responses
+        request_url: bytes | None = None
+        request_method: bytes | None = None
         for key, value in scope["headers"]:
-            key = key.lower()  # todo: preserve header casing
-            if key.startswith(FN_HTTP_H_):
-                http_headers.append((key.removeprefix(FN_HTTP_H_), value))
-            elif key == FN_HTTP_REQUEST_URL:
+            key_lower = key.lower()
+            if key_lower.startswith(FN_HTTP_H_):
+                http_headers.append((key[len(FN_HTTP_H_) :], value))
+            elif key_lower == FN_HTTP_REQUEST_URL:
                 request_url = value
-            elif key == FN_HTTP_REQUEST_METHOD:
+            elif key_lower == FN_HTTP_REQUEST_METHOD:
                 request_method = value
             else:
                 http_headers.append((key, value))
 
-        parsed_url = parse_url(request_url)
+        try:
+            parsed_url = parse_url(request_url)
+        except TypeError:
+            msg = "Could not determine request URL!"
+            logger.critical(msg)
+            raise ValueError(msg)
+
+        if request_method is None:
+            msg = "Could not determine request method!"
+            logger.critical(msg)
+            raise ValueError(msg)
 
         scope["method"] = request_method.decode()
-        scope["scheme"] = parsed_url.schema.decode()
         scope["path"] = parsed_url.path.decode()
-        scope["raw_path"] = parsed_url.path  # byte-string
-        scope["query_string"] = parsed_url.query  # byte-string
-        scope["root_path"] = os.getenv("FDK_ASGI_ROOT_PATH", "")
+        scope["raw_path"] = parsed_url.path  # byte-string, excluding any query string
+        scope["query_string"] = parsed_url.query or b""  # byte-string
+        # scope has precedence over environment variable
+        if scope.get("root_path") and os.getenv("FDK_ASGI_ROOT_PATH"):
+            logger.warning(
+                f"{os.getenv('FDK_ASGI_ROOT_PATH')=} was overridden "
+                f"by {scope['root_path']=}."
+            )
+        scope["root_path"] = scope.get(
+            "root_path", os.getenv("FDK_ASGI_ROOT_PATH", default="")
+        )
         scope["headers"] = http_headers
-        # todo: check if scope["client"] is correct
-        # todo: check if scope["server"] is correct
 
         return scope
 
