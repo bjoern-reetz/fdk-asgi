@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 import typing
 from importlib.metadata import version
 
@@ -42,7 +43,7 @@ class FnApplication(Starlette):
     def __init__(
         self,
         app: ASGIApplication | ASGIApp,
-        debug: bool = False,
+        debug: bool = True,
         middleware: typing.Sequence[Middleware] | None = None,
         exception_handlers: any = None,  # todo: add type annotation
         on_startup: typing.Sequence[typing.Callable[[], typing.Any]] | None = None,
@@ -81,6 +82,8 @@ class FnMiddleware:
         logger.debug(f"{scope=}")
         mapped_scope = self.map_scope(scope)
         logger.debug(f"{mapped_scope=}")
+        sys.stdout.flush()  # todo: check if flushing is really necessary
+        sys.stderr.flush()  # todo: check if flushing is really necessary
         await self.app(mapped_scope, receive, self.wrap_send(send))
 
     @staticmethod
@@ -158,6 +161,8 @@ class FnMiddleware:
                     message["status"] = status.HTTP_200_OK
 
             logger.debug(f"transformed_message={message}")
+            sys.stdout.flush()  # todo: check if flushing is necessary
+            sys.stderr.flush()  # todo: check if flushing is necessary
             await send(message)
 
         return wrapped_send
