@@ -1,6 +1,5 @@
 import logging
-import threading
-import time
+import os
 from pathlib import Path
 from typing import Annotated, Optional
 
@@ -49,15 +48,15 @@ LOGGING_CONFIG: dict[str, any] = {
 }
 
 
-def symlink_socket_to_phony(socket: Path, phony: Path):
-    print(f"Watching for phony to be created at {phony}..", flush=True)
-    while not phony.exists():
-        time.sleep(0.1)
-    print(f"Found app at {phony}, creating symlink at {socket}..", flush=True)
-    time.sleep(0.1)
-    phony.chmod(0o666)
-    socket.symlink_to(phony)
-    print(f"App ready to receive calls at {socket}!", flush=True)
+# def symlink_socket_to_phony(socket: Path, phony: Path):
+#     print(f"Watching for phony to be created at {phony}..", flush=True)
+#     while not phony.exists():
+#         time.sleep(0.1)
+#     print(f"Found app at {phony}, creating symlink at {socket}..", flush=True)
+#     time.sleep(0.1)
+#     phony.chmod(0o666)
+#     socket.symlink_to(phony)
+#     print(f"App ready to receive calls at {socket}!", flush=True)
 
 
 @app.command()
@@ -142,16 +141,11 @@ def serve(
         log_config = LOGGING_CONFIG
 
     socket = Path(uds.removeprefix("unix:"))
-    phony = socket.parent / ("phony" + socket.name)
-
-    # start server at phony, then symlink socket to phony
-    socket.unlink(missing_ok=True)
-    phony.unlink(missing_ok=True)
-    threading.Thread(target=symlink_socket_to_phony, args=(socket, phony)).start()
+    os.umask(0o666)
 
     config = uvicorn.Config(
         app=fn_asgi_app,
-        uds=str(phony),
+        uds=str(socket),
         loop=loop.value,
         http=http.value,
         ws="none",
