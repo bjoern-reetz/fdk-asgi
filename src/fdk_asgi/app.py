@@ -26,7 +26,7 @@ FN_FDK_VERSION_HEADER = (
 )
 FN_HTTP_H_ = b"fn-http-h-"
 FN_HTTP_REQUEST_URL = b"fn-http-request-url"
-FN_HTTP_REQUEST_METHOD = b"fn-http-request-method"
+FN_HTTP_REQUEST_METHOD = b"fn-http-method"
 FN_ALLOWED_RESPONSE_CODES = [
     status.HTTP_200_OK,
     status.HTTP_502_BAD_GATEWAY,
