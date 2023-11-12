@@ -1,4 +1,13 @@
+import typing
 from enum import Enum
+
+Scope = typing.MutableMapping[str, typing.Any]
+Message = typing.MutableMapping[str, typing.Any]
+
+Receive = typing.Callable[[], typing.Awaitable[Message]]
+Send = typing.Callable[[Message], typing.Awaitable[None]]
+
+ASGIApp = typing.Callable[[Scope, Receive, Send], typing.Awaitable[None]]
 
 
 class StrEnum(str, Enum):
@@ -23,10 +32,3 @@ class LoopSetupType(StrEnum):
     auto = "auto"
     asyncio = "asyncio"
     uvloop = "uvloop"
-
-
-class InterfaceType(StrEnum):
-    auto = "auto"
-    asgi3 = "asgi3"
-    asgi2 = "asgi2"
-    # wsgi = "wsgi"  # todo: add WSGI support

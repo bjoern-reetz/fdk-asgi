@@ -7,13 +7,13 @@ import typer
 import uvicorn
 from uvicorn.importer import import_from_string
 
-from fdk_asgi.app import FnApplication
-from fdk_asgi.types import HTTPProtocolType, InterfaceType, LifespanType, LoopSetupType
+from fdk_asgi.app import FnMiddleware
+from fdk_asgi.types import HTTPProtocolType, LifespanType, LoopSetupType
 
 app = typer.Typer()
 logger = logging.getLogger(__name__)
 
-LOGGING_CONFIG: dict[str, any] = {
+LOGGING_CONFIG: dict[str] = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
@@ -46,17 +46,6 @@ LOGGING_CONFIG: dict[str, any] = {
         "uvicorn.access": {"handlers": ["access"], "level": "INFO", "propagate": False},
     },
 }
-
-
-# def symlink_socket_to_phony(socket: Path, phony: Path):
-#     print(f"Watching for phony to be created at {phony}..", flush=True)
-#     while not phony.exists():
-#         time.sleep(0.1)
-#     print(f"Found app at {phony}, creating symlink at {socket}..", flush=True)
-#     time.sleep(0.1)
-#     phony.chmod(0o666)
-#     socket.symlink_to(phony)
-#     print(f"App ready to receive calls at {socket}!", flush=True)
 
 
 @app.command()
@@ -94,9 +83,6 @@ def serve(
         Optional[str], typer.Option(envvar="FDK_ASGI_LOG_LEVEL")
     ] = None,
     access_log: Annotated[bool, typer.Option(envvar="FDK_ASGI_ACCESS_LOG")] = True,
-    interface: Annotated[
-        InterfaceType, typer.Option(envvar="FDK_ASGI_INTERFACE")
-    ] = InterfaceType.auto,
     proxy_headers: Annotated[
         bool,
         typer.Option(
@@ -136,7 +122,7 @@ def serve(
     asgi_app = import_from_string(app_uri)
     if factory:
         asgi_app = asgi_app()
-    fn_asgi_app = FnApplication(asgi_app)
+    fn_asgi_app = FnMiddleware(asgi_app)
     if log_config is None:
         log_config = LOGGING_CONFIG
 
@@ -155,11 +141,11 @@ def serve(
         log_level=log_level,
         access_log=access_log,
         # use_colors: Optional[bool] = None,
-        interface=interface.value,
+        interface="asgi3",  # todo: add support for asgi2 and wsgi
         workers=1,
-        proxy_headers=False,  # todo: add prefixed versions of this header
-        server_header=False,  # todo: add prefixed versions of this header
-        date_header=False,  # todo: add prefixed versions of this header
+        proxy_headers=proxy_headers,  # todo: check if Functions supports this header
+        server_header=server_header,  # todo: check if Functions supports this header
+        date_header=date_header,  # todo: check if Functions supports this header
         # forwarded_allow_ips: Optional[Union[List[str], str]] = None,
         root_path=root_path,
         # limit_concurrency: Optional[int] = None,

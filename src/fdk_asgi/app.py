@@ -3,11 +3,11 @@ from __future__ import annotations
 import logging
 import os
 import sys
-import typing
+from http import HTTPStatus
 from importlib.metadata import version
 
 from asgiref.typing import (
-    ASGIApplication,
+    ASGI3Application,
     ASGIReceiveCallable,
     ASGISendCallable,
     ASGISendEvent,
@@ -15,11 +15,14 @@ from asgiref.typing import (
     HTTPScope,
 )
 from httptools import parse_url
-from starlette import status
-from starlette.applications import Starlette
-from starlette.middleware import Middleware
-from starlette.routing import Route
-from starlette.types import ASGIApp, Lifespan
+
+from fdk_asgi.exceptions import (
+    FnMiddlewareError,
+    MethodNotAllowedError,
+    MissingMethodError,
+    MissingUrlError,
+    PathNotFoundError,
+)
 
 FN_FDK_VERSION_HEADER = (
     b"Fn-Fdk-Version",
@@ -29,61 +32,46 @@ FN_HTTP_H_ = b"fn-http-h-"
 FN_HTTP_REQUEST_URL = b"fn-http-request-url"
 FN_HTTP_REQUEST_METHOD = b"fn-http-method"
 FN_ALLOWED_RESPONSE_CODES = [
-    status.HTTP_200_OK,
-    status.HTTP_502_BAD_GATEWAY,
-    status.HTTP_504_GATEWAY_TIMEOUT,
+    HTTPStatus.OK,
+    HTTPStatus.BAD_GATEWAY,
+    HTTPStatus.GATEWAY_TIMEOUT,
 ]
 logger = logging.getLogger(__name__)
-
-
-class FnApplication(Starlette):
-    """A wrapper around Starlette that ensures some settings conform
-    to the Fn container contract."""
-
-    def __init__(
-        self,
-        app: ASGIApplication | ASGIApp,
-        debug: bool = True,
-        middleware: typing.Sequence[Middleware] | None = None,
-        exception_handlers: any = None,  # todo: add type annotation
-        on_startup: typing.Sequence[typing.Callable[[], typing.Any]] | None = None,
-        on_shutdown: typing.Sequence[typing.Callable[[], typing.Any]] | None = None,
-        lifespan: Lifespan[ASGIApplication] | None = None,
-    ):
-        self.app = app
-
-        super().__init__(
-            debug,
-            [
-                Route(
-                    "/call",
-                    endpoint=FnMiddleware(app),
-                    methods=["POST"],
-                )
-            ],
-            middleware,
-            exception_handlers,
-            on_startup,
-            on_shutdown,
-            lifespan,
-        )
 
 
 class FnMiddleware:
     """A pure ASGI middleware, wrapping a regular ASGI application
     and translating Fn <-> REST."""
 
-    def __init__(self, app: ASGIApplication | ASGIApp):
+    def __init__(self, app: ASGI3Application):
         self.app = app
 
     async def __call__(
         self, scope: HTTPScope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ):
         logger.debug(f"{scope=}")
-        mapped_scope = self.map_scope(scope)
+        # todo: write to custom access log here
+        try:
+            mapped_scope = self.map_scope(scope)
+        except FnMiddlewareError as exception:
+            logger.critical(exception)
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": exception.code,
+                    "headers": [
+                        [b"content-type", b"text/plain"],
+                    ],
+                }
+            )
+            await send(
+                {
+                    "type": "http.response.body",
+                    "body": str(exception).encode(),
+                }
+            )
+            return
         logger.debug(f"{mapped_scope=}")
-        sys.stdout.flush()  # todo: check if flushing is really necessary
-        sys.stderr.flush()  # todo: check if flushing is really necessary
         await self.app(mapped_scope, receive, self.wrap_send(send))
 
     @staticmethod
@@ -92,6 +80,11 @@ class FnMiddleware:
         so that ASGI apps can understand them."""
 
         # see https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
+
+        if scope["path"] != "/call":
+            raise PathNotFoundError()
+        if scope["method"] != "POST":
+            raise MethodNotAllowedError()
 
         http_headers = []
         request_url: bytes | None = None
@@ -110,14 +103,10 @@ class FnMiddleware:
         try:
             parsed_url = parse_url(request_url)
         except TypeError:
-            msg = "Could not determine request URL!"
-            logger.critical(msg)
-            raise ValueError(msg)
+            raise MissingUrlError()
 
         if request_method is None:
-            msg = "Could not determine request method!"
-            logger.critical(msg)
-            raise ValueError(msg)
+            raise MissingMethodError()
 
         scope["method"] = request_method.decode()
         scope["path"] = parsed_url.path.decode()
@@ -158,7 +147,7 @@ class FnMiddleware:
                 message["headers"] = new_headers
 
                 if message["status"] not in FN_ALLOWED_RESPONSE_CODES:
-                    message["status"] = status.HTTP_200_OK
+                    message["status"] = HTTPStatus.OK
 
             logger.debug(f"transformed_message={message}")
             sys.stdout.flush()  # todo: check if flushing is necessary

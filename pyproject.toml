@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fdk-asgi"
-version = "0.0.2a3"
+version = "0.0.2a4"
 description = ""
 authors = ["Björn Reetz <git@bjoern-reetz.de>"]
 readme = "README.md"
@@ -10,18 +10,16 @@ packages = [{include = "fdk_asgi", from = "src"}]
 fdk-asgi-serve = 'fdk_asgi.cli:app'
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8"
 asgiref = "^3.7.2"
 httptools = "^0.6.0"
-starlette = "^0.27.0"
-uvicorn = "^0.23.2"
 typer = "^0.9.0"
-fastapi = "^0.104.1"
-gunicorn = "^21.2.0"
+uvicorn = "^0.24"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"
 httpx = "^0.25.0"
+starlette = "^0.32"
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]

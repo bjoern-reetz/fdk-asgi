@@ -8,7 +8,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse
 from starlette.routing import Mount, Route
 
-from fdk_asgi.app import FnApplication
+from fdk_asgi.app import FnMiddleware
 
 
 def homepage(_: Request):
@@ -64,7 +64,7 @@ def mounted_app(app):
 
 @pytest.fixture
 def fn_app(app):
-    return FnApplication(app)
+    return FnMiddleware(app)
 
 
 @dataclass
