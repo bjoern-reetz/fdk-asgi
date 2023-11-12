@@ -46,15 +46,15 @@ routes = [
 ]
 
 
-shared_app = Starlette(debug=True, routes=routes)
-shared_app.state.users = []
+def app_factory(users=None):
+    app = Starlette(debug=True, routes=routes)
+    app.state.users = users or []
+    return app
 
 
 @pytest.fixture
 def app():
-    app = Starlette(debug=True, routes=routes)
-    app.state.users = []
-    return app
+    return app_factory()
 
 
 @pytest.fixture
