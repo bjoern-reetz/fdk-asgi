@@ -1,4 +1,7 @@
 # fdk-asgi
+
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+
 An alternative FDK to easily run any ASGI application on OCI Functions behind an API Gateway.
 
 ## Documentation on the Open Fn Project and OCI Functions
