@@ -23,7 +23,7 @@ repos:
           - "--remove-all-unused-imports"
           - "--remove-duplicate-keys"
           - "--remove-unused-variables"
-  - repo: https://github.com/pycqa/isort
+  - repo: https://github.com/PyCQA/isort
     rev: 5.12.0
     hooks:
       - id: isort
@@ -34,7 +34,7 @@ repos:
     rev: 23.10.1
     hooks:
       - id: black
-  - repo: https://github.com/pycqa/flake8
+  - repo: https://github.com/PyCQA/flake8
     rev: 6.1.0
     hooks:
       - id: flake8
