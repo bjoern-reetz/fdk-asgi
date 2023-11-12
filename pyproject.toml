@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fdk-asgi"
-version = "0.0.2a4"
+version = "0.1.0"
 description = ""
 authors = ["Björn Reetz <git@bjoern-reetz.de>"]
 readme = "README.md"
