@@ -1,5 +1,6 @@
+import json
 import logging
-import os
+from importlib import resources
 from pathlib import Path
 from typing import Annotated, Optional
 
@@ -12,40 +13,6 @@ from fdk_asgi.types import HTTPProtocolType, LifespanType, LoopSetupType
 
 app = typer.Typer()
 logger = logging.getLogger(__name__)
-
-LOGGING_CONFIG: dict[str] = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "default": {
-            "()": "uvicorn.logging.DefaultFormatter",
-            "fmt": "%(levelprefix)s %(message)s",
-            "use_colors": None,
-        },
-        "access": {
-            "()": "uvicorn.logging.AccessFormatter",
-            "fmt": '%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s',  # noqa: B950
-        },
-    },
-    "handlers": {
-        "default": {
-            "formatter": "default",
-            "class": "logging.StreamHandler",
-            "stream": "ext://sys.stdout",
-        },
-        "access": {
-            "formatter": "access",
-            "class": "logging.StreamHandler",
-            "stream": "ext://sys.stdout",
-        },
-    },
-    "loggers": {
-        __package__: {"handlers": ["default"], "level": "DEBUG"},
-        "uvicorn": {"handlers": ["default"], "level": "INFO", "propagate": False},
-        "uvicorn.error": {"level": "INFO"},
-        "uvicorn.access": {"handlers": ["access"], "level": "INFO", "propagate": False},
-    },
-}
 
 
 @app.command()
@@ -82,7 +49,6 @@ def serve(
     log_level: Annotated[
         Optional[str], typer.Option(envvar="FDK_ASGI_LOG_LEVEL")
     ] = None,
-    access_log: Annotated[bool, typer.Option(envvar="FDK_ASGI_ACCESS_LOG")] = True,
     proxy_headers: Annotated[
         bool,
         typer.Option(
@@ -95,12 +61,12 @@ def serve(
         bool, typer.Option(envvar="FDK_ASGI_SERVER_HEADER")
     ] = True,
     date_header: Annotated[bool, typer.Option(envvar="FDK_ASGI_DATE_HEADER")] = True,
-    root_path: Annotated[
+    prefix: Annotated[
         str,
         typer.Option(
-            envvar="FDK_ASGI_ROOT_PATH",
-            help="Set the ASGI 'root_path' for applications "
-            "sub-mounted below a given URL path.",
+            envvar="FDK_ASGI_PREFIX",
+            help="Strips the given prefix from URL paths. "
+            "Also sets root_path to this value.",
             show_default=False,
         ),
     ] = "",
@@ -122,12 +88,17 @@ def serve(
     asgi_app = import_from_string(app_uri)
     if factory:
         asgi_app = asgi_app()
-    fn_asgi_app = FnMiddleware(asgi_app)
+    fn_asgi_app = FnMiddleware(asgi_app, prefix)
+
     if log_config is None:
-        log_config = LOGGING_CONFIG
+        log_config = json.loads(
+            resources.files(__package__)
+            .joinpath("default_logging_config.json")
+            .read_text()
+        )
 
     socket = Path(uds.removeprefix("unix:"))
-    os.umask(0o666)
+    # os.umask(0o666)  # todo: check if this is necessary
 
     config = uvicorn.Config(
         app=fn_asgi_app,
@@ -139,15 +110,15 @@ def serve(
         env_file=env_file,
         log_config=log_config,
         log_level=log_level,
-        access_log=access_log,
+        access_log=False,
         # use_colors: Optional[bool] = None,
-        interface="asgi3",  # todo: add support for asgi2 and wsgi
+        interface="asgi3",
         workers=1,
         proxy_headers=proxy_headers,  # todo: check if Functions supports this header
         server_header=server_header,  # todo: check if Functions supports this header
         date_header=date_header,  # todo: check if Functions supports this header
         # forwarded_allow_ips: Optional[Union[List[str], str]] = None,
-        root_path=root_path,
+        # root_path="",
         # limit_concurrency: Optional[int] = None,
         # limit_max_requests: Optional[int] = None,
         # backlog: int = 2048,
@@ -156,9 +127,12 @@ def serve(
         # timeout_graceful_shutdown: Optional[int] = None,
         # callback_notify: Optional[Callable[..., Awaitable[None]]] = None,
         # headers: Optional[List[Tuple[str, str]]] = None,
-        factory=factory,
+        factory=False,
         h11_max_incomplete_event_size=h11_max_incomplete_event_size,
     )
 
     server = uvicorn.Server(config)
-    server.run()
+    try:
+        server.run()
+    finally:
+        socket.unlink(missing_ok=True)
