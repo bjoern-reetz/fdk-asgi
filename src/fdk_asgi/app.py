@@ -4,13 +4,7 @@ import logging
 from http import HTTPStatus
 from importlib.metadata import version
 
-from asgiref.typing import (
-    ASGIReceiveCallable,
-    ASGISendCallable,
-    HTTPResponseStartEvent,
-    HTTPScope,
-    Scope,
-)
+from asgiref.typing import HTTPResponseStartEvent, HTTPScope
 from httptools import parse_url
 
 from fdk_asgi.exceptions import (
@@ -20,7 +14,7 @@ from fdk_asgi.exceptions import (
     MissingUrlError,
     PathNotFoundError,
 )
-from fdk_asgi.types import ASGIApp, Message, Send
+from fdk_asgi.types import ASGIApp, Message, Receive, Scope, Send
 from fdk_asgi.utils import get_client_addr, get_path_with_query_string
 
 FN_FDK_VERSION_HEADER = (
@@ -50,13 +44,12 @@ class FnMiddleware:
         self.app = app
         self.prefix = prefix
 
-    async def __call__(
-        self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
-    ):
-        # leave all but HTTP scopes untouched
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        # leave all but HTTP connection scopes untouched
         # note that websockets are not supported by fn
         if scope["type"] != "http":
-            return await self.app(scope, receive, send)  # noqa
+            return await self.app(scope, receive, send)
+        scope: HTTPScope
 
         try:
             mapped_scope = self._map_http_scope(scope)
@@ -124,7 +117,7 @@ class FnMiddleware:
         return scope
 
     @staticmethod
-    def _wrap_send(send: ASGISendCallable, scope: HTTPScope) -> Send:
+    def _wrap_send(send: Send, scope: HTTPScope) -> Send:
         async def wrapped_send(message: Message):
             # only process messages of type=http.response.start,
             # leave message of other types untouched
