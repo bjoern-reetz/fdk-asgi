@@ -9,6 +9,7 @@ from asgiref.typing import (
     ASGISendCallable,
     HTTPResponseStartEvent,
     HTTPScope,
+    Scope,
 )
 from httptools import parse_url
 
@@ -50,10 +51,15 @@ class FnMiddleware:
         self.prefix = prefix
 
     async def __call__(
-        self, scope: HTTPScope, receive: ASGIReceiveCallable, send: ASGISendCallable
+        self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ):
+        # leave all but HTTP scopes untouched
+        # note that websockets are not supported by fn
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)  # noqa
+
         try:
-            mapped_scope = self._map_scope(scope)
+            mapped_scope = self._map_http_scope(scope)
         except FnMiddlewareError as exception:
             logger.critical(exception)
             await send(
@@ -74,7 +80,7 @@ class FnMiddleware:
             return
         await self.app(mapped_scope, receive, self._wrap_send(send, scope))
 
-    def _map_scope(self, scope: HTTPScope) -> HTTPScope:
+    def _map_http_scope(self, scope: HTTPScope) -> HTTPScope:
         """Transforms headers etc. sent by Fn/API Gateway
         so that ASGI apps can understand them."""
 
