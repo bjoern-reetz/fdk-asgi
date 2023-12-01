@@ -53,7 +53,7 @@ class FnMiddleware:
         self, scope: HTTPScope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ):
         try:
-            mapped_scope = self.map_scope(scope)
+            mapped_scope = self._map_scope(scope)
         except FnMiddlewareError as exception:
             logger.critical(exception)
             await send(
@@ -72,9 +72,9 @@ class FnMiddleware:
                 }
             )
             return
-        await self.app(mapped_scope, receive, self.wrap_send(send, scope))
+        await self.app(mapped_scope, receive, self._wrap_send(send, scope))
 
-    def map_scope(self, scope: HTTPScope) -> HTTPScope:
+    def _map_scope(self, scope: HTTPScope) -> HTTPScope:
         """Transforms headers etc. sent by Fn/API Gateway
         so that ASGI apps can understand them."""
 
@@ -118,7 +118,7 @@ class FnMiddleware:
         return scope
 
     @staticmethod
-    def wrap_send(send: ASGISendCallable, scope: HTTPScope) -> Send:
+    def _wrap_send(send: ASGISendCallable, scope: HTTPScope) -> Send:
         async def wrapped_send(message: Message):
             # only process messages of type=http.response.start,
             # leave message of other types untouched
