@@ -101,7 +101,7 @@ class FnMiddleware:
         try:
             parsed_url = parse_url(request_url)
         except TypeError:
-            raise MissingUrlError()
+            raise MissingUrlError() from None
 
         if request_method is None:
             raise MissingMethodError()
