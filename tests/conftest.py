@@ -2,13 +2,12 @@ from dataclasses import dataclass
 
 import pytest
 from asgiref.typing import HTTPScope
+from fdk_asgi.app import FnMiddleware
 from starlette import status
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse
 from starlette.routing import Mount, Route
-
-from fdk_asgi.app import FnMiddleware
 
 
 def homepage(_: Request):
