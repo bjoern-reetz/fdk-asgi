@@ -51,17 +51,17 @@ def app_factory(users=None):
     return app
 
 
-@pytest.fixture
+@pytest.fixture()
 def app():
     return app_factory()
 
 
-@pytest.fixture
+@pytest.fixture()
 def mounted_app(app):
     return Starlette(debug=True, routes=[Mount("/mounted", app=app)])
 
 
-@pytest.fixture
+@pytest.fixture()
 def fn_app(app):
     return FnMiddleware(app)
 
@@ -75,7 +75,7 @@ class MappedScope:
     mapped_scope: HTTPScope
 
 
-@pytest.fixture
+@pytest.fixture()
 def mapped_scope():
     # todo: use a mock instead of accessing the implementation (i.e. the static methods)
     return MappedScope(

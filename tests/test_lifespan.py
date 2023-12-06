@@ -1,9 +1,8 @@
 from contextlib import asynccontextmanager
 
+from fdk_asgi.app import FnMiddleware
 from starlette.applications import Starlette
 from starlette.testclient import TestClient
-
-from fdk_asgi.app import FnMiddleware
 
 
 def test_supports_lifespan_protocol():

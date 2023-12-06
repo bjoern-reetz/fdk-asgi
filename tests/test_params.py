@@ -48,7 +48,7 @@ def test_query_params():
     }
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_body():
     payload = {"a simple": "json payload"}
     client.post("/with-body", json=payload)
@@ -66,7 +66,7 @@ def test_header():
     assert set(last_request.headers.items()).issuperset(headers.multi_items())
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_form_data():
     data = {"foo": "bar", "one": "two"}
     client.post("/with-simple-form-data", data=data)
