@@ -1,6 +1,4 @@
-import json
 import logging
-from importlib import resources
 from pathlib import Path
 from typing import Annotated, Optional
 
@@ -10,6 +8,44 @@ from uvicorn.importer import import_from_string
 
 from fdk_asgi.app import FnMiddleware
 from fdk_asgi.types import HTTPProtocolType, LifespanType, LoopSetupType
+
+DEFAULT_LOGGING_CONFIG: dict[str, any] = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "()": "uvicorn.logging.DefaultFormatter",
+            "fmt": "%(levelprefix)s %(message)s",
+            "use_colors": None,
+        },
+        "access": {
+            "()": "uvicorn.logging.AccessFormatter",
+            "fmt": '%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s',
+        },
+    },
+    "handlers": {
+        "default": {
+            "formatter": "default",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stderr",
+        },
+        "access": {
+            "formatter": "access",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+        },
+    },
+    "loggers": {
+        "fdk_asgi": {"handlers": ["default"], "level": "INFO"},
+        "fdk_asgi.access": {
+            "handlers": ["access"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "uvicorn": {"handlers": ["default"], "level": "INFO", "propagate": False},
+        "uvicorn.error": {"level": "INFO"},
+    },
+}
 
 app = typer.Typer()
 logger = logging.getLogger(__name__)
@@ -90,13 +126,6 @@ def serve(
         asgi_app = asgi_app()
     fn_asgi_app = FnMiddleware(asgi_app, prefix)
 
-    if log_config is None:
-        log_config = json.loads(
-            resources.files(__package__)
-            .joinpath("default_logging_config.json")
-            .read_text()
-        )
-
     socket = Path(uds.removeprefix("unix:"))
     # os.umask(0o666)  # todo: check if this is necessary
 
@@ -108,7 +137,7 @@ def serve(
         ws="none",
         lifespan=lifespan.value,
         env_file=env_file,
-        log_config=log_config,
+        log_config=DEFAULT_LOGGING_CONFIG if log_config is None else log_config,
         log_level=log_level,
         access_log=False,
         # use_colors: Optional[bool] = None,
