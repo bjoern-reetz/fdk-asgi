@@ -20,8 +20,9 @@ uvicorn = "^0.25"
 pytest = "^7.4.2"
 httpx = "^0.26"
 starlette = "^0.34"
-pytest-asyncio = "^0.23"
 python-multipart = "^0.0.6"
+anyio = "^4.2.0"
+trio = "^0.23.2"
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
