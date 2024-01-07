@@ -23,9 +23,11 @@ starlette = "^0.34"
 python-multipart = "^0.0.6"
 anyio = "^4.2.0"
 trio = "^0.23.2"
+hypothesis = "^6.92.2"
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
+pythonpath = ["."]
 
 [tool.ruff.lint]
 select = [
