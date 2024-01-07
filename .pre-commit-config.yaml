@@ -6,8 +6,6 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-      - id: pretty-format-json
-        args: [--autofix, --no-ensure-ascii, --no-sort-keys]
       - id: check-added-large-files
       - id: check-docstring-first
       - id: check-merge-conflict
