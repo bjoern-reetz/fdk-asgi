@@ -90,6 +90,7 @@ version_scheme = "pep440"
 version_provider = "poetry"
 update_changelog_on_bump = true
 major_version_zero = true
+changelog_start_rev = "ae609ee3fbb1b48ef3372166b5306fb249da0b3f"
 
 [build-system]
 requires = ["poetry-core"]
