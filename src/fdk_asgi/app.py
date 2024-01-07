@@ -107,7 +107,10 @@ class FnMiddleware:
             raise MissingMethodError()
 
         scope["method"] = request_method.decode()
-        scope["path"] = parsed_url.path.decode().removeprefix(self.prefix)
+        path = parsed_url.path.decode()
+        if len(self.prefix) and path.startswith(self.prefix):
+            path = path[len(self.prefix) :]
+        scope["path"] = path
         scope["raw_path"] = parsed_url.path  # byte-string, excluding any query string
         scope["query_string"] = parsed_url.query or b""  # byte-string
         # scope has precedence over environment variable

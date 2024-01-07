@@ -9,6 +9,7 @@ from uvicorn.importer import import_from_string
 from fdk_asgi.app import FnMiddleware
 from fdk_asgi.types import HTTPProtocolType, LifespanType, LoopSetupType
 
+UDS_PREFIX = "unix:"
 DEFAULT_LOGGING_CONFIG: dict[str, any] = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -126,7 +127,7 @@ def serve(
         asgi_app = asgi_app()
     fn_asgi_app = FnMiddleware(asgi_app, prefix)
 
-    socket = Path(uds.removeprefix("unix:"))
+    socket = Path(uds[len(UDS_PREFIX) :]) if uds.startswith(UDS_PREFIX) else Path(uds)
     # os.umask(0o666)  # todo: check if this is necessary
 
     config = uvicorn.Config(

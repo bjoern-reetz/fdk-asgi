@@ -20,7 +20,7 @@ from fdk_asgi.types import ASGIApp, Message
 class InverseFnMiddleware:
     def __init__(self, app: ASGIApp, *, url_prefix: str = "http://testclient"):
         self.app = app
-        self.url_prefix = url_prefix.removesuffix("/").encode()
+        self.url_prefix = url_prefix.rstrip("/").encode()
 
     def _construct_request_url(self, scope: HTTPScope) -> bytes:
         raw_path = scope["raw_path"] or parse_url(scope["path"]).path
