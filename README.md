@@ -16,7 +16,7 @@ POST /call HTTP/1.1
 Fn-Call-Id : 12345678910
 Fn-Deadline: <date/time>
 Fn-Http-Request-Url: https://my.fn.com/t/hello/world
-Fn-Http-Request-Method: PUT
+Fn-Http-Method: PUT
 Fn-Http-H-Custom-Header: foo
 Content-type: text/plain
 
