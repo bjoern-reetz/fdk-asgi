@@ -3,6 +3,7 @@
 [![pipeline status](https://github.com/bjoern-reetz/fdk-asgi/actions/workflows/publish.yml/badge.svg?main)](https://github.com/bjoern-reetz/fdk-asgi/actions/workflows/publish.yml)
 [![latest package version](https://img.shields.io/pypi/v/fdk-asgi)](https://pypi.org/project/fdk-asgi/)
 [![supported python versions](https://img.shields.io/pypi/pyversions/fdk-asgi)](https://pypi.org/project/fdk-asgi/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/fdk-asgi)](https://pypistats.org/packages/fdk-asgi)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 
 An alternative FDK to easily run any ASGI application on OCI Functions behind an API Gateway.
