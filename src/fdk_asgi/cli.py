@@ -2,9 +2,18 @@ import logging
 from pathlib import Path
 from typing import Annotated, Optional
 
-import typer
-import uvicorn
-from uvicorn.importer import import_from_string
+try:
+    import typer
+except ModuleNotFoundError as exception:  # pragma: no cover
+    msg = f"Using {__name__} requires the typer package to be installed."
+    raise RuntimeError(msg) from exception
+
+try:
+    import uvicorn
+    from uvicorn.importer import import_from_string
+except ModuleNotFoundError as exception:  # pragma: no cover
+    msg = f"Using {__name__} requires the uvicorn package to be installed."
+    raise RuntimeError(msg) from exception
 
 from fdk_asgi.app import FnMiddleware
 from fdk_asgi.types import HTTPProtocolType, LifespanType, LoopSetupType
