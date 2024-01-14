@@ -25,6 +25,8 @@ anyio = "^4.2.0"
 trio = "^0.23.2"
 hypothesis = "^6.92.2"
 pytest-cov = "^4.1.0"
+setuptools = "^69.0.3"  # required by pybadges
+pybadges = "^3.0.1"
 
 [tool.coverage.run]
 source = ["src", "tests"]
@@ -103,6 +105,7 @@ version_provider = "poetry"
 update_changelog_on_bump = true
 major_version_zero = true
 changelog_start_rev = "ae609ee3fbb1b48ef3372166b5306fb249da0b3f"
+pre_bump_hooks = ["scripts/regenerate-badges.sh"]
 
 [build-system]
 requires = ["poetry-core"]

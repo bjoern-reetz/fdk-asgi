@@ -3,6 +3,7 @@ repos:
     rev: v4.5.0
     hooks:
       - id: end-of-file-fixer
+        exclude: '^images/.*$'
       - id: mixed-line-ending
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
