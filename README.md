@@ -9,6 +9,75 @@
 
 An alternative FDK to easily run any ASGI application on OCI Functions behind an API Gateway.
 
+## Basic usage
+
+Use it just like uvicorn. The fdk-asgi-serve command wraps your ASGI app with a middleware
+that translates from/to the Fn protocol and starts a server that respects runtime Fn configuration,
+e.g. listens on a unix-socket etc.
+
+```bash
+pip install fdk-asgi[cli]
+fdk-asgi-serve package.module:app
+```
+
+If you install the package without extras, Typer and uvicorn dependencies are skipped.
+This is particularly useful if you want to use another ASGI server
+and just need the ASGI middleware this package provides.
+
+## Full usage
+
+```
+fdk-asgi-serve --help
+Usage: fdk-asgi-serve [OPTIONS] APP
+
+Arguments:
+  APP  [required]
+
+Options:
+  --uds TEXT                      Path to the UNIX domain socket, prefixed
+                                  with "unix:". This will be managed by the Fn
+                                  Server.  [env var: FN_LISTENER; default:
+                                  unix:./fdk-asgi.socket]
+  --loop [none|auto|asyncio|uvloop]
+                                  [env var: FDK_ASGI_LOOP; default: none]
+  --http [auto|h11|httptools]     [env var: FDK_ASGI_HTTP; default: auto]
+  --lifespan [auto|on|off]        [env var: FDK_ASGI_LIFESPAN; default: auto]
+  --env-file PATH                 Read configuration from an env file. Only
+                                  affects the ASGI app, not the FDK/Server!
+                                  [env var: FDK_ASGI_ENV_FILE]
+  --log-config PATH               [env var: FDK_ASGI_LOG_CONFIG]
+  --log-level TEXT                [env var: FDK_ASGI_LOG_LEVEL]
+  --proxy-headers / --no-proxy-headers
+                                  Enable/Disable X-Forwarded-Proto,
+                                  X-Forwarded-For, X-Forwarded-Port to
+                                  populate remote address info.  [env var:
+                                  FDK_ASGI_PROXY_HEADERS; default: proxy-
+                                  headers]
+  --server-header / --no-server-header
+                                  [env var: FDK_ASGI_SERVER_HEADER; default:
+                                  server-header]
+  --date-header / --no-date-header
+                                  [env var: FDK_ASGI_DATE_HEADER; default:
+                                  date-header]
+  --prefix TEXT                   Strips the given prefix from URL paths. Also
+                                  sets root_path to this value.  [env var:
+                                  FDK_ASGI_PREFIX]
+  --timeout-keep-alive INTEGER    [env var: FDK_ASGI_TIMEOUT_KEEP_ALIVE;
+                                  default: 5]
+  --factory / --no-factory        Treat APP as an application factory, i.e. a
+                                  () -> <ASGI app> callable.  [env var:
+                                  FDK_ASGI_FACTORY; default: no-factory]
+  --h11-max-incomplete-event-size INTEGER
+                                  [env var:
+                                  FDK_ASGI_H11_MAX_INCOMPLETE_EVENT_SIZE]
+  --install-completion [bash|zsh|fish|powershell|pwsh]
+                                  Install completion for the specified shell.
+  --show-completion [bash|zsh|fish|powershell|pwsh]
+                                  Show completion for the specified shell, to
+                                  copy it or customize the installation.
+  --help                          Show this message and exit.
+```
+
 ## Documentation on the Open Fn Project and OCI Functions
 
 Example request:
