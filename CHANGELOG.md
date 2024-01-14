@@ -1,3 +1,9 @@
+## v0.5.0 (2024-01-14)
+
+### Refactor
+
+- change uvicorn and typer to optional dependencies
+
 ## v0.4.0 (2024-01-07)
 
 ### Feat

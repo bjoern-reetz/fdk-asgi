@@ -1,3 +1,5 @@
+from http import HTTPMethod
+
 from asgiref.typing import HTTPResponseStartEvent, HTTPScope, Scope
 from httptools import parse_url
 
@@ -93,3 +95,33 @@ class InverseFnMiddleware:
             await send(message)
 
         return wrapped_send
+
+
+class SaveOriginalScopeMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        assert scope["method"] == HTTPMethod.POST
+        assert scope["path"] == "/call"
+        scope.setdefault("extensions", {})["fdk-asgi.original-scope"] = {
+            key: value for key, value in scope.items() if key != "extensions"
+        }  # todo: replace with deep copy
+
+        await self.app(scope, receive, send)
+
+
+class ValidateMappedScope:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        assert isinstance(scope["raw_path"], bytes)
+        assert isinstance(scope["query_string"], bytes)
+        for item in scope["headers"]:
+            assert isinstance(item, tuple)
+            key, value = item
+            assert isinstance(key, bytes)
+            assert isinstance(value, bytes)
+
+        await self.app(scope, receive, send)
