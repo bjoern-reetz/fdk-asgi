@@ -24,9 +24,19 @@ python-multipart = "^0.0.6"
 anyio = "^4.2.0"
 trio = "^0.23.2"
 hypothesis = "^6.92.2"
+pytest-cov = "^4.1.0"
+
+[tool.coverage.run]
+source = ["src", "tests"]
 
 [tool.pytest.ini_options]
-addopts = ["--import-mode=importlib"]
+addopts = [
+    "--cov",
+    "--cov-report=term:skip-covered",
+    "--import-mode=importlib",
+    "--strict-config",
+    "--strict-markers",
+]
 pythonpath = ["."]
 
 [tool.ruff.lint]
