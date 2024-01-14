@@ -26,6 +26,7 @@ repos:
         entry: poetry run -- pytest
         types: [python]
         pass_filenames: false
+        stages: [pre-commit, pre-merge-commit, pre-push, manual]
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.13.0
     hooks:
