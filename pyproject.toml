@@ -1,3 +1,7 @@
+[project]
+name = "fdk-asgi"
+requires-python = ">=3.8"
+
 [tool.poetry]
 name = "fdk-asgi"
 version = "0.5.0"
@@ -15,6 +19,7 @@ asgiref = "^3.7.2"
 httptools = "^0.6.0"
 typer = { version = "^0.9.0", optional = true }
 uvicorn = { version = "^0.25", optional = true }
+strenum = "^0.4.15"
 
 [tool.poetry.extras]
 cli = ["typer", "uvicorn"]
@@ -32,9 +37,14 @@ setuptools = "^69.0.3"  # required by pybadges
 pybadges = "^3.0.1"
 typer = "*"
 uvicorn = "*"
+mypy = "^1.10.0"
 
 [tool.coverage.run]
 source = ["src", "tests"]
+
+[tool.mypy]
+files = "src"
+strict = true
 
 [tool.pytest.ini_options]
 addopts = [
@@ -98,7 +108,8 @@ select = [
 keep-runtime-typing = true
 
 [tool.ruff.per-file-ignores]
-"**/test_*.py" = ["S101"]
+"tests/**/test_*.py" = ["S101"]
+"tests/utils.py" = ["S101"]
 "src/fdk_asgi/testing.py" = ["S101"]
 "src/fdk_asgi/cli.py" = ["FBT", "ERA001"]
 
