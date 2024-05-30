@@ -43,7 +43,7 @@ mypy = "^1.10.0"
 source = ["src", "tests"]
 
 [tool.mypy]
-files = "src"
+files = ["src", "tests"]
 strict = true
 
 [tool.pytest.ini_options]
