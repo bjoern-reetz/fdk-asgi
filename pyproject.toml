@@ -46,6 +46,10 @@ source = ["src", "tests"]
 files = ["src", "tests"]
 strict = true
 
+[[tool.mypy.overrides]]
+module = ["httptools"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 addopts = [
     "--cov",
