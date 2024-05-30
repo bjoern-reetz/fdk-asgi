@@ -37,9 +37,9 @@ def get_client_addr(scope: WWWScope) -> str:
     client = scope.get("client")
     if not client:
         return ""
-    # TestClient produces a list instead of a tuple
-    # convert to tuple as a workaround
-    return "%s:%d" % tuple(client)
+    # asgiref types scope["client"] as a Tuple[str, int],
+    # but the spec types it as an Iterable[Unicode string, int]
+    return "{!s}:{:d}".format(*client)
 
 
 def get_path_with_query_string(scope: WWWScope) -> str:
