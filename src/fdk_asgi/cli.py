@@ -1,6 +1,13 @@
 import logging
+import os
+import sys
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Optional
+
+if sys.version_info >= (3, 9):
+    from typing import Annotated
+else:
+    from typing_extensions import Annotated
 
 try:
     import typer
@@ -19,7 +26,7 @@ from fdk_asgi.app import FnMiddleware
 from fdk_asgi.types import HTTPProtocolType, LifespanType, LoopSetupType
 
 UDS_PREFIX = "unix:"
-DEFAULT_LOGGING_CONFIG: dict[str, any] = {
+DEFAULT_LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
@@ -130,7 +137,7 @@ def serve(
     h11_max_incomplete_event_size: Annotated[
         Optional[int], typer.Option(envvar="FDK_ASGI_H11_MAX_INCOMPLETE_EVENT_SIZE")
     ] = None,
-):
+) -> None:
     asgi_app = import_from_string(app_uri)
     if factory:
         asgi_app = asgi_app()
@@ -147,7 +154,9 @@ def serve(
         ws="none",
         lifespan=lifespan.value,
         env_file=env_file,
-        log_config=DEFAULT_LOGGING_CONFIG if log_config is None else log_config,
+        log_config=DEFAULT_LOGGING_CONFIG
+        if log_config is None
+        else os.fspath(log_config),
         log_level=log_level,
         access_log=False,
         # use_colors: Optional[bool] = None,
