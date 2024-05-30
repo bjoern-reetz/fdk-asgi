@@ -1,6 +1,12 @@
 from string import printable
 
-from asgiref.typing import HTTPResponseStartEvent, HTTPScope, Scope
+from asgiref.typing import (
+    ASGI3Application,
+    ASGISendEvent,
+    HTTPResponseStartEvent,
+    HTTPScope,
+    Scope,
+)
 from fdk_asgi.app import (
     FN_ALLOWED_RESPONSE_CODES,
     FN_HTTP_H_,
@@ -8,7 +14,6 @@ from fdk_asgi.app import (
     FN_HTTP_REQUEST_URL,
     FN_HTTP_STATUS,
 )
-from fdk_asgi.types import ASGIApp, Message
 from httptools import parse_url
 from httpx import Headers
 from hypothesis import strategies as st
@@ -40,7 +45,7 @@ class HTTPMethod(StrEnum):
 
 
 class InverseFnMiddleware:
-    def __init__(self, app: ASGIApp, *, url_prefix: str = "http://testclient"):
+    def __init__(self, app: ASGI3Application, *, url_prefix: str = "http://testclient"):
         self.app = app
         self.url_prefix = url_prefix.rstrip("/").encode()
 
@@ -73,7 +78,7 @@ class InverseFnMiddleware:
 
     @staticmethod
     def _wrap_send(send):
-        async def wrapped_send(message: Message):
+        async def wrapped_send(message: ASGISendEvent):
             # only process messages of type=http.response.start,
             # leave message of other types untouched
             if message["type"] != "http.response.start":
