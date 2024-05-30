@@ -1,3 +1,15 @@
+## v0.7.0 (2024-05-30)
+
+### Feat
+
+- **fdk_asgi**: add py.typed marker
+
+### Refactor
+
+- **fdk_asgi.cli**: fix some type hints
+- **fdk_asgi.utils.get_client_addr**: accept Iterable for scope["client"] instead of only tuple | list
+- **fdk_asgi.app**: fix some type hints
+
 ## v0.6.0 (2024-05-26)
 
 ### BREAKING CHANGE
