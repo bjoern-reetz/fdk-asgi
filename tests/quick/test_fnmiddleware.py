@@ -1,6 +1,6 @@
 from fdk_asgi.app import FnMiddleware
 
-from .conftest import MappedScope
+from ..conftest import MappedScope
 
 
 def test_map_example_scope(mapped_scope: MappedScope, fn_app: FnMiddleware) -> None:
