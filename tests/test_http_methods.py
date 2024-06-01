@@ -5,7 +5,7 @@ from starlette.routing import Route
 from starlette.testclient import TestClient
 
 
-def test_http_methods():
+def test_http_methods() -> None:
     supported_methods = [
         "GET",
         "HEAD",
@@ -18,7 +18,7 @@ def test_http_methods():
         "PATCH",
     ]
 
-    def remember_method(request: Request):
+    def remember_method(request: Request) -> PlainTextResponse:
         request.app.state.handled_methods.add(request.method)
         return PlainTextResponse(
             f"I will remember the request method {request.method}."

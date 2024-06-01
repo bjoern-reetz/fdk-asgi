@@ -1,24 +1,26 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 import pytest
-from asgiref.typing import HTTPScope
 from fdk_asgi.app import FnMiddleware
+from fdk_asgi.types import ASGIApp, Scope
 from starlette import status
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import JSONResponse, PlainTextResponse
+from starlette.responses import JSONResponse, PlainTextResponse, Response
 from starlette.routing import Mount, Route
 
 
-def homepage(_: Request):
+def homepage(_: Request) -> Response:
     return PlainTextResponse("Hello, world!")
 
 
-def users_list(request: Request):
+def users_list(request: Request) -> Response:
     return JSONResponse(request.app.state.users)
 
 
-def users_get(request: Request):
+def users_get(request: Request) -> Response:
     username = request.path_params["username"]
     try:
         user_obj = next(
@@ -31,7 +33,7 @@ def users_get(request: Request):
     return JSONResponse(user_obj)
 
 
-async def users_create(request: Request):
+async def users_create(request: Request) -> Response:
     payload = await request.json()
     request.app.state.users.append(payload)
     return JSONResponse(payload, status_code=status.HTTP_201_CREATED)
@@ -45,24 +47,24 @@ routes = [
 ]
 
 
-def app_factory(users=None):
+def app_factory(users: list[str] | None = None) -> ASGIApp:
     app = Starlette(debug=True, routes=routes)
     app.state.users = users or []
     return app
 
 
 @pytest.fixture()
-def app():
+def app() -> ASGIApp:
     return app_factory()
 
 
 @pytest.fixture()
-def mounted_app(app):
+def mounted_app(app: ASGIApp) -> ASGIApp:
     return Starlette(debug=True, routes=[Mount("/mounted", app=app)])
 
 
 @pytest.fixture()
-def fn_app(app):
+def fn_app(app: ASGIApp) -> FnMiddleware:
     return FnMiddleware(app)
 
 
@@ -71,12 +73,12 @@ class MappedScope:
     """A pair of scope that's coming in from the Function agent,
     and it's mapped version that will be passed to the ASGI app."""
 
-    scope: HTTPScope
-    mapped_scope: HTTPScope
+    scope: Scope
+    mapped_scope: Scope
 
 
 @pytest.fixture()
-def mapped_scope():
+def mapped_scope() -> MappedScope:
     # todo: use a mock instead of accessing the implementation (i.e. the static methods)
     return MappedScope(
         scope={

@@ -1,14 +1,15 @@
+from fdk_asgi.types import ASGIApp
 from starlette import status
 from starlette.testclient import TestClient
 
 
-def test_homepage(app):
+def test_homepage(app: ASGIApp) -> None:
     client = TestClient(app)
     response = client.get("/")
     assert response.content == b"Hello, world!"
 
 
-def test_users(app):
+def test_users(app: ASGIApp) -> None:
     client = TestClient(app)
 
     response = client.get("/users")
