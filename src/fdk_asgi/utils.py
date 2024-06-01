@@ -1,6 +1,6 @@
 import urllib.parse
 
-from asgiref.typing import WWWScope
+from fdk_asgi.types import Scope
 
 # Code taken from uvicorn.protocols.utils
 
@@ -33,16 +33,14 @@ from asgiref.typing import WWWScope
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-def get_client_addr(scope: WWWScope) -> str:
+def get_client_addr(scope: Scope) -> str:
     client = scope.get("client")
     if not client:
         return ""
-    # asgiref types scope["client"] as a Tuple[str, int],
-    # but the spec types it as an Iterable[Unicode string, int]
     return "{!s}:{:d}".format(*client)
 
 
-def get_path_with_query_string(scope: WWWScope) -> str:
+def get_path_with_query_string(scope: Scope) -> str:
     path_with_query_string = urllib.parse.quote(scope["path"])
     if scope["query_string"]:
         path_with_query_string = "{}?{}".format(

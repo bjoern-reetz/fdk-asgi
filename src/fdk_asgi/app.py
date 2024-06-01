@@ -4,16 +4,6 @@ import logging
 from http import HTTPStatus
 from importlib.metadata import version
 
-from asgiref.typing import (
-    ASGI3Application,
-    ASGIReceiveCallable,
-    ASGISendCallable,
-    ASGISendEvent,
-    HTTPResponseBodyEvent,
-    HTTPResponseStartEvent,
-    HTTPScope,
-    Scope,
-)
 from httptools import parse_url
 
 from fdk_asgi.exceptions import (
@@ -23,6 +13,7 @@ from fdk_asgi.exceptions import (
     MissingUrlError,
     PathNotFoundError,
 )
+from fdk_asgi.types import ASGIApp, Receive, Scope, Send
 from fdk_asgi.utils import get_client_addr, get_path_with_query_string
 
 FN_FDK_VERSION_HEADER = (
@@ -48,13 +39,11 @@ class FnMiddleware:
     """A pure ASGI middleware, wrapping a regular ASGI application
     and translating Fn <-> REST."""
 
-    def __init__(self, app: ASGI3Application, prefix: str = ""):
+    def __init__(self, app: ASGIApp, prefix: str = "") -> None:
         self.app = app
         self.prefix = prefix
 
-    async def __call__(
-        self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
-    ) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         # leave all but HTTP connection scopes untouched
         # note that websockets are not supported by fn
         if scope["type"] != "http":
@@ -64,27 +53,27 @@ class FnMiddleware:
             mapped_scope = self._map_http_scope(scope)
         except FnMiddlewareError as exception:
             logger.critical(exception)
-            start_message: HTTPResponseStartEvent
-            start_message = {
-                "type": "http.response.start",
-                "status": exception.code,
-                "headers": [
-                    (b"content-type", b"text/plain"),
-                ],
-                "trailers": False,
-            }
-            await send(start_message)
-            body_message: HTTPResponseBodyEvent
-            body_message = {
-                "type": "http.response.body",
-                "body": str(exception).encode(),
-                "more_body": False,
-            }
-            await send(body_message)
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": exception.code,
+                    "headers": [
+                        (b"content-type", b"text/plain"),
+                    ],
+                    "trailers": False,
+                }
+            )
+            await send(
+                {
+                    "type": "http.response.body",
+                    "body": str(exception).encode(),
+                    "more_body": False,
+                }
+            )
             return
         await self.app(mapped_scope, receive, self._wrap_send(send, scope))
 
-    def _map_http_scope(self, scope: HTTPScope) -> HTTPScope:
+    def _map_http_scope(self, scope: Scope) -> Scope:
         """Transforms headers etc. sent by Fn/API Gateway
         so that ASGI apps can understand them."""
 
@@ -131,8 +120,8 @@ class FnMiddleware:
         return scope
 
     @staticmethod
-    def _wrap_send(send: ASGISendCallable, scope: HTTPScope) -> ASGISendCallable:
-        async def wrapped_send(message: ASGISendEvent) -> None:
+    def _wrap_send(send: Send, scope: Scope) -> Send:
+        async def wrapped_send(message: Scope) -> None:
             # only process messages of type=http.response.start,
             # leave message of other types untouched
             if message["type"] == "http.response.start":
