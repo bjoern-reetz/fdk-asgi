@@ -2,10 +2,13 @@
 
 [![pipeline status](https://github.com/bjoern-reetz/fdk-asgi/actions/workflows/publish.yml/badge.svg?main)](https://github.com/bjoern-reetz/fdk-asgi/actions/workflows/publish.yml)
 [![latest package version](https://img.shields.io/pypi/v/fdk-asgi)](https://pypi.org/project/fdk-asgi/)
-![supported python versions](https://img.shields.io/pypi/pyversions/fdk-asgi)
+[![supported python versions](https://img.shields.io/pypi/pyversions/fdk-asgi)](https://www.python.org/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/fdk-asgi)](https://pypistats.org/packages/fdk-asgi)
-![source files coverage](./images/coverage.svg)
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![license](./images/license.svg)](./LICENSE)
+[![source files coverage](./images/coverage.svg)](https://coverage.readthedocs.io/)
+[![ruff](./images/ruff.svg)](https://docs.astral.sh/ruff)
+[![mypy](./images/mypy.svg)](https://www.mypy-lang.org/)
+[![pre-commit](./images/pre-commit.svg)](https://github.com/pre-commit/pre-commit)
 
 An alternative FDK to easily run any ASGI application on OCI Functions behind an API Gateway.
 
