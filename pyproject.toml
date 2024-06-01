@@ -15,7 +15,6 @@ fdk-asgi-serve = 'fdk_asgi.cli:app'
 
 [tool.poetry.dependencies]
 python = ">=3.8"
-asgiref = "^3.7.2"
 httptools = "^0.6.0"
 typer = { version = "^0.9.0", optional = true }
 uvicorn = { version = "^0.25", optional = true }
