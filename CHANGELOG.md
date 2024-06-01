@@ -1,3 +1,12 @@
+## v0.7.1 (2024-06-01)
+
+### Refactor
+
+- move quick tests to subpackage
+- fully type hint tests
+- use less strict type hints
+- **tests/utils.py**: use asgiref instead of fdk_asgi.types
+
 ## v0.7.0 (2024-05-30)
 
 ### Feat
