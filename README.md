@@ -8,7 +8,7 @@
 [![source files coverage](./images/coverage.svg)](https://coverage.readthedocs.io/)
 [![ruff](./images/ruff.svg)](https://docs.astral.sh/ruff)
 [![mypy](./images/mypy.svg)](https://www.mypy-lang.org/)
-[![pre-commit](./images/pre-commit.svg)](https://github.com/pre-commit/pre-commit)
+[![pre-commit](./images/pre-commit.svg)](https://pre-commit.com/)
 
 An alternative FDK to easily run any ASGI application on OCI Functions behind an API Gateway.
 
