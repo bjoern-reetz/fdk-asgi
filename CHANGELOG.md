@@ -1,3 +1,9 @@
+## v0.7.2 (2024-08-04)
+
+### Fix
+
+- **pyproject.toml**: improve project metadata
+
 ## v0.7.1 (2024-06-01)
 
 ### Refactor
