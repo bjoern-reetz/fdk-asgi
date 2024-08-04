@@ -7,8 +7,20 @@ version = "0.7.1"
 name = "fdk-asgi"
 version = "0.7.1"
 description = "An alternative FDK to easily run any ASGI application on OCI Functions behind an API Gateway."
+license = "MIT"
 authors = ["Björn Reetz <git@bjoern-reetz.de>"]
 readme = "README.md"
+homepage = "https://github.com/bjoern-reetz/fdk-asgi/"
+repository = "https://github.com/bjoern-reetz/fdk-asgi/"
+documentation = "https://github.com/bjoern-reetz/fdk-asgi/"
+keywords = ["oci", "functions", "fnproject", "runtime", "asgi"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
 packages = [{include = "fdk_asgi", from = "src"}]
 
 [tool.poetry.scripts]
