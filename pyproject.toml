@@ -1,6 +1,7 @@
 [project]
 name = "fdk-asgi"
 requires-python = ">=3.8"
+version = "0.7.1"
 
 [tool.poetry]
 name = "fdk-asgi"
@@ -119,6 +120,7 @@ name = "cz_conventional_commits"
 tag_format = "v$version"
 version_scheme = "pep440"
 version_provider = "poetry"
+version_files = ["pyproject.toml:version"]
 update_changelog_on_bump = true
 major_version_zero = true
 changelog_start_rev = "ae609ee3fbb1b48ef3372166b5306fb249da0b3f"
