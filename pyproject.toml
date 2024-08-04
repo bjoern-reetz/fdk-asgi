@@ -122,7 +122,7 @@ version_provider = "poetry"
 update_changelog_on_bump = true
 major_version_zero = true
 changelog_start_rev = "ae609ee3fbb1b48ef3372166b5306fb249da0b3f"
-pre_bump_hooks = ["poetry run pytest", "scripts/regenerate-badges.sh"]
+pre_bump_hooks = ["git stash", "poetry run pytest", "scripts/regenerate-badges.sh"]
 
 [build-system]
 requires = ["poetry-core"]
